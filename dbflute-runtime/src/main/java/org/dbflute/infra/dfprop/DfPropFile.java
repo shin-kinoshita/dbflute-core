@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
@@ -68,7 +68,7 @@ public class DfPropFile {
      * It returns merged properties like this:
      * <pre>
      * for example:
-     * 
+     *
      * [Switch Style]
      * dbflute_exampledb
      *  |-dfprop
@@ -78,17 +78,17 @@ public class DfPropFile {
      *
      * if maihama, env
      * if default, main
-     * 
+     *
      * [Inherit Style]
      * dbflute_exampledb
      *  |-dfprop
      *  |  |-maihama
      *  |  |  |-exampleMap+.dfprop // env+
      *  |  |-exampleMap.dfprop     // main
-     * 
+     *
      * if maihama, main and env+
      * if default, main only
-     * 
+     *
      * [All Stars]
      * dbflute_exampledb
      *  |-dfprop
@@ -97,7 +97,7 @@ public class DfPropFile {
      *  |  |  |-exampleMap+.dfprop // env+
      *  |  |-exampleMap.dfprop     // main
      *  |  |-exampleMap+.dfprop    // main+
-     * 
+     *
      * if maihama, env and env+
      * if default, main and main+
      * </pre>
@@ -114,9 +114,30 @@ public class DfPropFile {
         });
     }
 
+    public Map<String, Object> readComments(String dfpropPath, String envType) {
+        assertDfpropPath(dfpropPath);
+        return doReadMap(dfpropPath, envType, new DfPropReadingMapHandler<Object>() {
+            public Map<String, Object> readMap(String path) throws FileNotFoundException, IOException {
+                return actuallyReadComments(path);
+            }
+        });
+    }
+
     protected Map<String, Object> actuallyReadMap(String path) throws FileNotFoundException, IOException {
         try {
             return createMapListFileStructural().readMap(createInputStream(path));
+        } catch (MapListStringDuplicateEntryException e) {
+            throwDfPropDuplicateEntryException(path, e);
+            return null; // unreachable
+        } catch (MapListStringParseFailureException e) {
+            throwDfPropMapStringParseFailureException(path, e);
+            return null; // unreachable
+        }
+    }
+
+    protected Map<String, Object> actuallyReadComments(String path) throws FileNotFoundException, IOException {
+        try {
+            return createMapListFileStructural().readComments(createInputStream(path));
         } catch (MapListStringDuplicateEntryException e) {
             throwDfPropDuplicateEntryException(path, e);
             return null; // unreachable

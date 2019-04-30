@@ -30,6 +30,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.dbflute.util.DfCollectionUtil;
+import org.dbflute.util.Srl;
+
 /**
  * @author jflute
  * @since 0.9.7.1 (2010/06/06 Sunday)
@@ -87,6 +90,40 @@ public class MapListFile {
         }
         final MapListString mapListString = createMapListString();
         return mapListString.generateMap(mapString);
+    }
+
+    public Map<String, Object> readComments(InputStream ins) throws IOException {
+        final Map<String, Object> keyCommentMap = DfCollectionUtil.newLinkedHashMap();
+        final String encoding = "UTF-8";
+        BufferedReader br = new BufferedReader(new InputStreamReader(ins, encoding));
+        String previousComment = "";
+        while (true) {
+            final String line = br.readLine();
+            if (line == null) {
+                break;
+            }
+            final String ltrimmedLine = Srl.ltrim(line);
+            if (ltrimmedLine.startsWith("#")) { // comment lines
+                final String commentCandidate = Srl.substringFirstRear(ltrimmedLine, "#").trim();
+                if (!ltrimmedLine.trim().equals("#")) { // not sharp lonely
+                    previousComment += "".equals(previousComment) ? commentCandidate : "\n" + commentCandidate;
+                }
+                continue;
+            }
+            // key value here
+            if ("".equals(ltrimmedLine.trim())) { // if empty line is found before map value, comments are ignored
+                previousComment = "";
+                continue;
+            }
+            final String key = ltrimmedLine.contains("=") ? Srl.substringFirstFront(ltrimmedLine, "=").trim() : ltrimmedLine.trim();
+            keyCommentMap.put(key, previousComment);
+            previousComment = "";
+        }
+        try {
+            br.close();
+        } catch (IOException ignored) {
+        }
+        return keyCommentMap;
     }
 
     /**
@@ -278,7 +315,8 @@ public class MapListFile {
             if (br != null) {
                 try {
                     br.close();
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
             }
         }
         return sb.toString();
@@ -303,7 +341,8 @@ public class MapListFile {
             if (bw != null) {
                 try {
                     bw.close();
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
             }
         }
     }
