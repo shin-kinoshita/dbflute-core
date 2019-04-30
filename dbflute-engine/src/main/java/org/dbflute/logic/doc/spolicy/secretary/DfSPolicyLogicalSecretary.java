@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -328,11 +328,12 @@ public class DfSPolicyLogicalSecretary {
     // ===================================================================================
     //                                                                 Violation Exception
     //                                                                 ===================
-    public void throwSchemaPolicyCheckViolationException(Map<String, Object> policyMap, DfSPolicyResult result) {
+    public String buildSchemaPolicyCheckViolationMessage(DfSPolicyResult result) { // independent for SchemaHTML display
         final ExceptionMessageBuilder br = new ExceptionMessageBuilder();
         br.addNotice("The schema policy has been violated.");
         br.addItem("Advice");
         br.addElement("Make sure your violating schema (ERD and DDL).");
+        br.addElement("You can see violations on this message or SchemaHTML.");
         br.addElement("And after that, execute renewal (or regenerate) again.");
         br.addElement("(tips: The schema policy is on schemaPolicyMap.dfprop)");
         // unneeded because of too big, already info, also violation with definition by jflute (2019/01/27)
@@ -355,8 +356,11 @@ public class DfSPolicyLogicalSecretary {
             }
             ++policyIndex;
         }
-        final String msg = br.buildExceptionMessage();
-        throw new DfSchemaPolicyCheckViolationException(msg);
+        return br.buildExceptionMessage();
+    }
+
+    public void throwSchemaPolicyCheckViolationException(String violationMessage) {
+        throw new DfSchemaPolicyCheckViolationException(violationMessage);
     }
 
     public String buildPolicyExp(Map<String, Object> policyMap) {
