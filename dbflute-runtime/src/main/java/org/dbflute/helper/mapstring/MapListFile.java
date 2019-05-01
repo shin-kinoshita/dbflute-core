@@ -115,8 +115,13 @@ public class MapListFile {
                 previousComment = "";
                 continue;
             }
-            final String key = ltrimmedLine.contains("=") ? Srl.substringFirstFront(ltrimmedLine, "=").trim() : ltrimmedLine.trim();
-            keyCommentMap.put(key, previousComment);
+            String key = ltrimmedLine.contains("=") ? Srl.substringFirstFront(ltrimmedLine, "=").trim() : ltrimmedLine.trim();
+            if (key.startsWith(";")) {
+                key = Srl.substringFirstRear(key, ";").trim();
+            }
+            if (!"".equals(previousComment.trim())) {
+                keyCommentMap.put(key, previousComment);
+            }
             previousComment = "";
         }
         try {
