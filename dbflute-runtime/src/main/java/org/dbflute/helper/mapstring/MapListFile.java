@@ -105,16 +105,14 @@ public class MapListFile {
             final String ltrimmedLine = Srl.ltrim(line);
             if (ltrimmedLine.startsWith("#")) { // comment lines
                 final String commentCandidate = Srl.substringFirstRear(ltrimmedLine, "#").trim();
-                if (!ltrimmedLine.trim().equals("#")) { // not sharp lonely
-                    previousComment += "".equals(previousComment) ? commentCandidate : "\n" + commentCandidate;
-                }
+                previousComment += "".equals(previousComment) ? commentCandidate : "\n" + commentCandidate;
+                continue;
+            }
+            if ("".equals(ltrimmedLine.trim())) { // empty line is also added to comment
+                previousComment += "\n";
                 continue;
             }
             // key value here
-            if ("".equals(ltrimmedLine.trim())) { // if empty line is found before map value, comments are ignored
-                previousComment = "";
-                continue;
-            }
             String key = ltrimmedLine.contains("=") ? Srl.substringFirstFront(ltrimmedLine, "=").trim() : ltrimmedLine.trim();
             if (key.startsWith(";")) {
                 key = Srl.substringFirstRear(key, ";").trim();
