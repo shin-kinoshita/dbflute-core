@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,8 @@ public class MapListFile {
     //                                                                          Definition
     //                                                                          ==========
     private static final String UTF8_ENCODING = "UTF-8";
+    private static List<String> SCOPE_LIST =
+            Arrays.asList("tableExceptList", "tableTargetList", "columnExceptMap", "isMainSchemaOnly", "wholeMap", "tableMap", "columnMap");
 
     // ===================================================================================
     //                                                                           Attribute
@@ -92,24 +95,21 @@ public class MapListFile {
         return mapListString.generateMap(mapString);
     }
 
+    @SuppressWarnings("unchecked")
     public Map<String, Object> readComments(InputStream ins) throws IOException {
         final Map<String, Object> keyCommentMap = DfCollectionUtil.newLinkedHashMap();
         final String encoding = "UTF-8";
         BufferedReader br = new BufferedReader(new InputStreamReader(ins, encoding));
         String previousComment = "";
+        String scope = "";
         while (true) {
             final String line = br.readLine();
             if (line == null) {
                 break;
             }
             final String ltrimmedLine = Srl.ltrim(line);
-            if (ltrimmedLine.startsWith("#")) { // comment lines
-                final String commentCandidate = Srl.substringFirstRear(ltrimmedLine, "#").trim();
-                previousComment += "".equals(previousComment) ? commentCandidate : "\n" + commentCandidate;
-                continue;
-            }
-            if ("".equals(ltrimmedLine.trim())) { // empty line is also added to comment
-                previousComment += "\n";
+            if (ltrimmedLine.startsWith("#") || "".equals(ltrimmedLine.trim())) { // comment or empty lines
+                previousComment += ltrimmedLine + "\n";
                 continue;
             }
             // key value here
@@ -117,8 +117,16 @@ public class MapListFile {
             if (key.startsWith(";")) {
                 key = Srl.substringFirstRear(key, ";").trim();
             }
-            if (!"".equals(previousComment.trim())) {
-                keyCommentMap.put(key, previousComment);
+            if (SCOPE_LIST.contains(key)) {
+                scope = key;
+            }
+            if (previousComment.equals("")) {
+                continue;
+            }
+            if (keyCommentMap.containsKey(scope)) {
+                ((Map) keyCommentMap.get(scope)).put(key, previousComment);
+            } else {
+                keyCommentMap.put(scope, DfCollectionUtil.newLinkedHashMap(key, previousComment));
             }
             previousComment = "";
         }
