@@ -114,30 +114,9 @@ public class DfPropFile {
         });
     }
 
-    public Map<String, Object> readComments(String dfpropPath, String envType) {
-        assertDfpropPath(dfpropPath);
-        return doReadMap(dfpropPath, envType, new DfPropReadingMapHandler<Object>() {
-            public Map<String, Object> readMap(String path) throws FileNotFoundException, IOException {
-                return actuallyReadComments(path);
-            }
-        });
-    }
-
     protected Map<String, Object> actuallyReadMap(String path) throws FileNotFoundException, IOException {
         try {
             return createMapListFileStructural().readMap(createInputStream(path));
-        } catch (MapListStringDuplicateEntryException e) {
-            throwDfPropDuplicateEntryException(path, e);
-            return null; // unreachable
-        } catch (MapListStringParseFailureException e) {
-            throwDfPropMapStringParseFailureException(path, e);
-            return null; // unreachable
-        }
-    }
-
-    protected Map<String, Object> actuallyReadComments(String path) throws FileNotFoundException, IOException {
-        try {
-            return createMapListFileStructural().readComments(createInputStream(path));
         } catch (MapListStringDuplicateEntryException e) {
             throwDfPropDuplicateEntryException(path, e);
             return null; // unreachable

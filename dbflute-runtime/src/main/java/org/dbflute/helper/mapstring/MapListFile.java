@@ -44,8 +44,6 @@ public class MapListFile {
     //                                                                          Definition
     //                                                                          ==========
     private static final String UTF8_ENCODING = "UTF-8";
-    private static List<String> SCOPE_LIST =
-            Arrays.asList("tableExceptList", "tableTargetList", "columnExceptMap", "isMainSchemaOnly", "wholeMap", "tableMap", "columnMap");
 
     // ===================================================================================
     //                                                                           Attribute
@@ -93,48 +91,6 @@ public class MapListFile {
         }
         final MapListString mapListString = createMapListString();
         return mapListString.generateMap(mapString);
-    }
-
-    @SuppressWarnings("unchecked")
-    public Map<String, Object> readComments(InputStream ins) throws IOException {
-        final Map<String, Object> keyCommentMap = DfCollectionUtil.newLinkedHashMap();
-        final String encoding = "UTF-8";
-        BufferedReader br = new BufferedReader(new InputStreamReader(ins, encoding));
-        String previousComment = "";
-        String scope = "";
-        while (true) {
-            final String line = br.readLine();
-            if (line == null) {
-                break;
-            }
-            final String ltrimmedLine = Srl.ltrim(line);
-            if (ltrimmedLine.startsWith("#") || "".equals(ltrimmedLine.trim())) { // comment or empty lines
-                previousComment += ltrimmedLine + "\n";
-                continue;
-            }
-            // key value here
-            String key = ltrimmedLine.contains("=") ? Srl.substringFirstFront(ltrimmedLine, "=").trim() : ltrimmedLine.trim();
-            if (key.startsWith(";")) {
-                key = Srl.substringFirstRear(key, ";").trim();
-            }
-            if (SCOPE_LIST.contains(key)) {
-                scope = key;
-            }
-            if (previousComment.equals("")) {
-                continue;
-            }
-            if (keyCommentMap.containsKey(scope)) {
-                ((Map) keyCommentMap.get(scope)).put(key, previousComment);
-            } else {
-                keyCommentMap.put(scope, DfCollectionUtil.newLinkedHashMap(key, previousComment));
-            }
-            previousComment = "";
-        }
-        try {
-            br.close();
-        } catch (IOException ignored) {
-        }
-        return keyCommentMap;
     }
 
     /**
